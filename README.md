@@ -2,7 +2,7 @@
 
 Customerized Media player
 
-<br>![alt tag]()</br>
+<br>![alt tag](https://github.com/Yitian2003/MediaPlayer/blob/master/2017-08-19_09h37_59.gif)</br>
 <br>
 Finished Feature:
 </br>
