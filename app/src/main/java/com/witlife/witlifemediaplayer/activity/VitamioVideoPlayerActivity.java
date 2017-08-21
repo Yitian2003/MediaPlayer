@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,18 +22,19 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.MediaController;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.VideoView;
 
 import com.witlife.witlifemediaplayer.R;
 import com.witlife.witlifemediaplayer.bean.MediaBean;
 import com.witlife.witlifemediaplayer.utils.Utils;
 
-import java.io.Serializable;
+import io.vov.vitamio.Vitamio;
+import io.vov.vitamio.widget.*;
+import io.vov.vitamio.MediaPlayer;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -45,7 +44,7 @@ import java.util.List;
  * Created by bruce on 15/08/2017.
  */
 
-public class VideoPlayerActivity extends AppCompatActivity {
+public class VitamioVideoPlayerActivity extends AppCompatActivity {
 
     public static final String VIDEO_LIST = "video_list";
     public static final int PROGRESS = 1;
@@ -87,7 +86,6 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
     private boolean isNetUri;
     private boolean isUnder17 = true;
-    private Uri uri;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -97,7 +95,9 @@ public class VideoPlayerActivity extends AppCompatActivity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        setContentView(R.layout.activity_video_player);
+        Vitamio.isInitialized(this);
+
+        setContentView(R.layout.activity_vitamio_video_player);
 
         bindView();
         setFullScreen();
@@ -121,7 +121,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
             switch (msg.what) {
                 case PROGRESS:
-                    int currentProgress = videoView.getCurrentPosition();
+                    int currentProgress = (int) videoView.getCurrentPosition();
                     seekbar_time.setProgress(currentProgress);
 
                     tv_process_time.setText(utils.stringForTime(currentProgress));
@@ -136,7 +136,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
                         int secondaryProgress = totalBuffer / 100;
                         seekbar_time.setSecondaryProgress(secondaryProgress);
                     } else {
-                        seekbar_time.setSecondaryProgress(0);
+                        seekbar_time.setProgress(0);
                     }
 
                     if(isUnder17 && videoView.isPlaying()) {
@@ -161,7 +161,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
                     break;
 
                 case SHOW_SPEED:
-                    String netSpeed = utils.getNetSpeed(VideoPlayerActivity.this);
+                    String netSpeed = utils.getNetSpeed(VitamioVideoPlayerActivity.this);
 
                     tvLoadingText.setText("Loading..." + netSpeed);
                     Log.e("net speed:", netSpeed);
@@ -220,6 +220,9 @@ public class VideoPlayerActivity extends AppCompatActivity {
     }
 
     private void setStatusBar() {
+
+        tvTitle.setText(trailers.get(position).getMovieName());
+
         //setup battery
         BroadcastReceiver receiver = new BroadcastReceiver() {
             @Override
@@ -258,7 +261,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        android.widget.RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) videoView.getLayoutParams();
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) videoView.getLayoutParams();
         params.width = metrics.widthPixels;
         params.height = metrics.heightPixels;
         videoView.setLayoutParams(params);
@@ -328,7 +331,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
                     videoView.setVideoPath(trailers.get(position).getUrl());
                     seekbar_time.setProgress(0);
                 } else {
-                    Toast.makeText(VideoPlayerActivity.this, "This is the first Video.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(VitamioVideoPlayerActivity.this, "This is the first Video.", Toast.LENGTH_LONG).show();
                 }
                 handler.removeMessages(HIDE_CONTROLLER);
                 handler.sendEmptyMessageDelayed(HIDE_CONTROLLER, 5000);
@@ -347,7 +350,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
                     videoView.setVideoPath(trailers.get(position).getUrl());
                     seekbar_time.setProgress(0);
                 } else {
-                    Toast.makeText(VideoPlayerActivity.this, "This is the last Video.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(VitamioVideoPlayerActivity.this, "This is the last Video.", Toast.LENGTH_LONG).show();
                 }
                 handler.removeMessages(HIDE_CONTROLLER);
                 handler.sendEmptyMessageDelayed(HIDE_CONTROLLER, 5000);
@@ -419,7 +422,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
                 videoView.start();
 
-                int duration = videoView.getDuration();
+                int duration = (int) videoView.getDuration();
                 seekbar_time.setProgress(0);
                 seekbar_time.setMax(duration);
                 tv_time_totle.setText(utils.stringForTime(duration));
@@ -432,7 +435,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
         videoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-                startVitamioPlayer();
+                Toast.makeText(VitamioVideoPlayerActivity.this, "Error", Toast.LENGTH_LONG).show();
                 return false;
             }
         });
@@ -466,27 +469,6 @@ public class VideoPlayerActivity extends AppCompatActivity {
             }
         }
 
-    }
-
-    private void startVitamioPlayer() {
-
-        if(videoView != null) {
-            videoView.stopPlayback();
-        }
-
-        Intent intent = new Intent(this, VitamioVideoPlayerActivity.class);
-        if(trailers != null && trailers.size() > 0){
-
-            Bundle bundle = new Bundle();
-            bundle.putSerializable(VIDEO_LIST, (Serializable)trailers);
-            intent.putExtras(bundle);
-            intent.putExtra("position", position);
-
-        } else if(uri != null){
-            intent.setData(uri);
-        }
-        this.startActivity(intent);
-        finish();
     }
 
     private void updateVolume(int progress, boolean isMute) {
@@ -526,21 +508,14 @@ public class VideoPlayerActivity extends AppCompatActivity {
         if (intent != null) {
             trailers = (List<MediaBean.TrailersBean>) getIntent().getSerializableExtra(VIDEO_LIST);
             position = getIntent().getIntExtra("position", 0);
-            uri = getIntent().getData();
         }
 
         if(trailers != null && trailers.size() > 0){
             MediaBean.TrailersBean item = trailers.get(position);
             isNetUri = utils.isNetUri(item.getUrl());
             videoView.setVideoPath(item.getUrl());
-            tvTitle.setText(trailers.get(position).getMovieName());
-        } else if(uri != null){
-            tvTitle.setText(uri.toString());
-            isNetUri = utils.isNetUri(uri.toString());
-            videoView.setVideoURI(uri);
-        } else {
-            Toast.makeText(VideoPlayerActivity.this, "NO Video File", Toast.LENGTH_LONG);
         }
+        //videoView.setVideoURI(Uri.parse(trailers.get(position).getUrl()));
     }
 
     @Override

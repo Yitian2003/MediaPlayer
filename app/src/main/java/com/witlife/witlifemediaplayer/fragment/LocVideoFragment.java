@@ -99,7 +99,7 @@ public class LocVideoFragment extends Fragment{
                         trailers.add(trailer);
                         trailer.setMovieName(cursor.getString(0));
                         trailer.setVideoLength(cursor.getLong(1));
-                        //trailer.set(cursor.getString(0));
+                        //trailer.set
                         trailer.setUrl(cursor.getString(3));
 
                     }

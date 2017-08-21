@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:background="@android:color/black"
+    android:orientation="vertical">
+
+    <io.vov.vitamio.widget.VideoView
+        android:id="@id/videoview"
+        android:layout_centerInParent="true"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <include android:id="@+id/controller" layout="@layout/ll_controller"/>
+
+    <include android:id="@+id/buffer" layout="@layout/buffer" />
+
+    <include android:id="@+id/loading" layout="@layout/loading" />
+</RelativeLayout>
