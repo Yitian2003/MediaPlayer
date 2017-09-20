@@ -7,10 +7,10 @@ Customerized Media player
 Finished Feature:
 </br>
 <br>
-1. fetch local videos
+1. fetch local video list
 </br>
 <br>
-2. fetch remove video list
+2. fetch remote video list
 </br>
 <br>
 3. caculate loading speed and buffering speed
